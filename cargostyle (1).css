@@ -1,0 +1,48 @@
+const loginForm = document.getElementById("login-form");
+const loginButton = document.getElementById("login-button");
+const usernameInput = document.getElementById("username");
+const passwordInput = document.getElementById("password");
+const cargoTable = document.getElementById("cargo-table");
+
+loginForm.addEventListener("submit", (e) => {
+  e.preventDefault();
+  loginButton.disabled = true;
+  const username = usernameInput.value;
+  const password = passwordInput.value;
+
+  fetch("/login", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ username, password })
+  })
+  .then(response => {
+    if (response.ok) {
+      // Fetch cargo data from API endpoint
+      return fetch("http://127.0.0.1:5000/api/cargo/all");
+    } else {
+      throw new Error("Invalid username or password");
+    }
+  })
+  .then(response => response.json())
+  .then(data => {
+    // Populate cargo table with data
+    const tbody = cargoTable.querySelector("tbody");
+    data.forEach(cargo => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${cargo.weight}</td>
+        <td>${cargo.cargotype}</td>
+        <td>${cargo.departure}</td>
+        <td>${cargo.arrival}</td>
+        <td>${cargo.shipid}</td>
+      `;
+      tbody.appendChild(row);
+    });
+  })
+  .catch(error => {
+    console.error(error);
+    alert("An error occurred while trying to retrieve cargo data.");
+  });
+});
